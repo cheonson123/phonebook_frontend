@@ -8,7 +8,6 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState(""); // New state for search term
   const [notification, setNotification] = useState(""); // New state for notification
 
-  
   useEffect(() => {
     axios
       .get("http://localhost:3001/api/persons")
@@ -35,7 +34,7 @@ const App = () => {
     setNotification(message);
     setTimeout(() => {
       setNotification("");
-    }, 3000); // Clear notification after 3 seconds
+    }, 10000); // Clear notification after 3 seconds
   };
   // 添加
   const handleSubmit = (event) => {
@@ -45,30 +44,32 @@ const App = () => {
     console.log(existingPerson);
     if (existingPerson) {
       if (window.confirm("Are you sure you want to update this person?")) {
-      const updatedPerson = { ...existingPerson, number: newNumber };
-      axios
-        .put(
-          `http://localhost:3001/api/persons/${existingPerson.id}`,
-          updatedPerson
-        )
-        .then((response) => {
-          setPersons(
-            persons.map((person) =>
-              person.id === existingPerson.id ? response.data : person
-            )
-          );
-          setNewName("");
-          setNewNumber("");
-          showNotification("Person updated successfully!");
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 404) {
-            showNotification(`${existingPerson.number} of ${existingPerson.name} has been removed`);
-          } else {
+        const updatedPerson = { ...existingPerson, number: newNumber };
+        axios
+          .post("http://localhost:3001/api/persons", updatedPerson)
+          .then((response) => {
+            setPersons(
+              persons.map((person) =>
+                person.id === existingPerson.id ? response.data : person
+              )
+            );
+            setNewName("");
+            setNewNumber("");
+            showNotification("Person updated successfully!");
+          })
+          .catch((error) => {
+            if (error.response && error.response.status === 400) {
+              showNotification(error.response.data.error);
+            }
+            // } else if (error.response && error.response.status === 404) {
+            //   showNotification(
+            //     `${existingPerson.number} of ${existingPerson.name} has been removed`
+            //   );
+            // } 
             console.error("Error updating person", error);
-          }
-        });
-    } }else {
+           });
+      }
+    } else {
       // 添加新名字
       const newPerson = {
         name: newName,
@@ -81,9 +82,12 @@ const App = () => {
           setPersons(persons.concat(reponse.data));
           setNewName("");
           setNewNumber("");
-          showNotification("Person updated successfully!");
+          showNotification("Person added successfully!");
         })
         .catch((error) => {
+          if (error.response && error.response.status === 400) {
+            showNotification(error.response.data.error);
+          }
           console.error("Error adding person", error);
         });
     }
@@ -103,14 +107,15 @@ const App = () => {
       axios
         .delete(`http://localhost:3001/api/persons/${id}`)
         .then(() => {
-          setPersons(persons.filter(person => person.id !== id));
+          setPersons(persons.filter((person) => person.id !== id));
           showNotification("Person deleted successfully!"); // Show notification
-
         })
         .catch((error) => {
           if (error.response && error.response.status === 404) {
-            const removedPerson = persons.find(person => person.id === id);
-            showNotification(`${removedPerson.number} of ${removedPerson.name} has been removed`);
+            const removedPerson = persons.find((person) => person.id === id);
+            showNotification(
+              `${removedPerson.number} of ${removedPerson.name} has been removed`
+            );
           } else {
             console.error("Error deleting person", error);
           }
@@ -118,15 +123,35 @@ const App = () => {
     }
   };
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px", textAlign: "center", backgroundColor: "#f9f9f9", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)" }}>
-      <h1 style={{ color: "#333", fontSize: "2em", marginBottom: "20px" }}>PhoneBook</h1>
-      {notification && <div style={{ color: "red", marginBottom: "20px" }}>{notification}</div>}
+    <div
+      style={{
+        maxWidth: "600px",
+        margin: "0 auto",
+        padding: "20px",
+        textAlign: "center",
+        backgroundColor: "#f9f9f9",
+        borderRadius: "8px",
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <h1 style={{ color: "#333", fontSize: "2em", marginBottom: "20px" }}>
+        PhoneBook
+      </h1>
+      {notification && (
+        <div style={{ color: "red", marginBottom: "20px" }}>{notification}</div>
+      )}
       <input
         type="text"
         placeholder="Search..."
         value={searchTerm}
         onChange={handleSearchChange}
-        style={{ padding: "10px", width: "100%", marginBottom: "20px", borderRadius: "4px", border: "1px solid #ccc" }}
+        style={{
+          padding: "10px",
+          width: "100%",
+          marginBottom: "20px",
+          borderRadius: "4px",
+          border: "1px solid #ccc",
+        }}
       />
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
         <div>
@@ -135,26 +160,73 @@ const App = () => {
             value={newName}
             onChange={handleInputChange}
             placeholder="Name"
-            style={{ padding: "10px", width: "calc(50% - 10px)", marginRight: "10px", borderRadius: "4px", border: "1px solid #ccc" }}
+            style={{
+              padding: "10px",
+              width: "calc(50% - 10px)",
+              marginRight: "10px",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
           />
           <input
             name="number"
             value={newNumber}
             onChange={handleInputChange}
             placeholder="Number"
-            style={{ padding: "10px", width: "calc(50% - 10px)", borderRadius: "4px", border: "1px solid #ccc" }}
+            style={{
+              padding: "10px",
+              width: "calc(50% - 10px)",
+              borderRadius: "4px",
+              border: "1px solid #ccc",
+            }}
           />
         </div>
         <div>
-          <button type="submit" style={{ padding: "10px 20px", marginTop: "10px", borderRadius: "4px", border: "none", backgroundColor: "#28a745", color: "white", cursor: "pointer" }}>Add</button>
+          <button
+            type="submit"
+            style={{
+              padding: "10px 20px",
+              marginTop: "10px",
+              borderRadius: "4px",
+              border: "none",
+              backgroundColor: "#28a745",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            Add
+          </button>
         </div>
       </form>
       <h2 style={{ color: "#333", marginBottom: "10px" }}>Numbers</h2>
       <ul style={{ listStyleType: "none", padding: "0" }}>
         {filteredPersons.map((person, index) => (
-          <li key={index} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ccc", borderRadius: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <li
+            key={index}
+            style={{
+              marginBottom: "10px",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             {`${person.name} ${person.number}`}
-            <button onClick={() => handleDelete(person.id)} style={{ padding: "5px 10px", borderRadius: "4px", border: "none", backgroundColor: "#dc3545", color: "white", cursor: "pointer" }}>Delete</button>
+            <button
+              onClick={() => handleDelete(person.id)}
+              style={{
+                padding: "5px 10px",
+                borderRadius: "4px",
+                border: "none",
+                backgroundColor: "#dc3545",
+                color: "white",
+                cursor: "pointer",
+              }}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
