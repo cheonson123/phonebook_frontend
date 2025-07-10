@@ -10,7 +10,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/persons")
+      .get("https://phonebook.midday.top/api/persons")
       .then((response) => {
         setPersons(response.data);
       })
@@ -77,7 +77,7 @@ const App = () => {
         id: (Math.floor(Math.random() * 10000) + 1).toString(),
       };
       axios
-        .post("http://localhost:3001/api/persons", newPerson)
+        .post("https://phonebook.midday.top/api/persons", newPerson)
         .then((reponse) => {
           setPersons(persons.concat(reponse.data));
           setNewName("");
@@ -105,7 +105,7 @@ const App = () => {
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this person?")) {
       axios
-        .delete(`http://localhost:3001/api/persons/${id}`)
+        .delete(`https://phonebook.midday.top/api/persons/${id}`)
         .then(() => {
           setPersons(persons.filter((person) => person.id !== id));
           showNotification("Person deleted successfully!"); // Show notification
