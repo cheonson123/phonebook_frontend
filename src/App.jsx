@@ -46,7 +46,7 @@ const App = () => {
       if (window.confirm("Are you sure you want to update this person?")) {
         const updatedPerson = { ...existingPerson, number: newNumber };
         axios
-          .post("http://localhost:3001/api/persons", updatedPerson)
+          .post("https://phonebook.midday.top/api/persons", updatedPerson)
           .then((response) => {
             setPersons(
               persons.map((person) =>
@@ -65,9 +65,9 @@ const App = () => {
             //   showNotification(
             //     `${existingPerson.number} of ${existingPerson.name} has been removed`
             //   );
-            // } 
+            // }
             console.error("Error updating person", error);
-           });
+          });
       }
     } else {
       // 添加新名字
